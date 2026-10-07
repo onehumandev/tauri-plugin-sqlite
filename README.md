@@ -111,6 +111,47 @@ Or specify individual permissions:
 }
 ```
 
+## Compatibility / upgrading host app to Tauri 2.12
+
+This plugin is developed and tested against **Tauri 2.12.0**.
+The plugin depends on `tauri = "2.12.0"` (semver-compatible 2.12.x). Silvermine host apps
+should align on **2.12.0** until patch releases are certified:
+
+| Package | Suggested version |
+| ------- | ----------------- |
+| `tauri` | `2.12.0` |
+| `@tauri-apps/api` | `2.12.0` |
+| `@tauri-apps/cli` | `2.12.0` |
+
+Release notes: [tauri@2.12.0](https://v2.tauri.app/release/tauri/v2.12.0/).
+
+### Android and Gradle (host apps)
+
+This plugin is Rust-only and does not ship an Android Gradle module. When you upgrade a
+**host** Tauri app to 2.12, update the generated Android project:
+
+1. **Regenerate Android** — Templates use Gradle **9.6.1**, AGP **9.3.1**, Kotlin **2.2**,
+   and `targetSdk` **37**. Run `tauri android init`, or delete
+   `src-tauri/gen/android/gradle/wrapper/gradle-wrapper.properties` and re-run init if the
+   wrapper is still on Gradle &lt; 8.13 (minimum after the `compilerOptions` migration).
+2. **`kotlinOptions` → `compilerOptions`** — New templates use `compilerOptions`; migrate
+   custom Kotlin Gradle scripts accordingly.
+3. **JDK vs Gradle** — Tauri CLI 2.12 warns when Java is incompatible with Gradle; see
+   [Gradle/Java compatibility][gradle-java-compat].
+4. **`$VIDEO` / `video_dir()`** — On Android these resolve to the app Movies dir, not
+   cache. Migrate old DB files if needed. Use explicit paths (for example
+   `app.path().app_data_dir()`), not `$VIDEO`.
+5. **Plugin authors with Kotlin** — For plugins with `build.gradle.kts`, remove the
+   template `buildTypes { release { proguardFiles(...) } }` block and rename
+   `proguard-rules.pro` to `consumer-rules.pro` to match
+   `consumerProguardFiles("consumer-rules.pro")` in the 2.12 template.
+
+### Windows
+
+Tauri 2.12 pulls in `windows` 0.62 and drops Windows 7 support.
+
+[gradle-java-compat]: https://docs.gradle.org/current/userguide/compatibility.html#java
+
 ## Usage
 
 ### Setup
